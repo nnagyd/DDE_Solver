@@ -52,7 +52,7 @@ public:
 	void setInitialXValues(unsigned int var, double * x, double *xd);
 	void setDelay(unsigned int nr, unsigned int var, double t0);
 	void setParameters(double * p);
-	void analyzeInit();
+	void analyzeInit(bool print);
 
 	//dense output
 	double denseOutput(double t, unsigned int var, unsigned int delayID);

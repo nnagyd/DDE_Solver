@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iomanip>
 
-
 template<unsigned int nrOfVars, unsigned int nrOfDelays, unsigned int nrOfParameters>
 DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::DDESolver()
 {
@@ -171,7 +170,7 @@ void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::sort(double * lst, unsigne
 template<unsigned int nrOfVars, unsigned int nrOfDelays, unsigned int nrOfParameters>
 void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::allocate()
 {
-	memorySize = nrOfSteps + nrOfDelays * nrOfInitialPoints * 3;
+	memorySize = nrOfSteps + nrOfDelays * nrOfInitialPoints * 5;
 	tVals = new double[memorySize];
 	xVals = new double*[memorySize];
 	xdVals = new double*[memorySize];
@@ -184,7 +183,7 @@ void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::allocate()
 }
 
 template<unsigned int nrOfVars, unsigned int nrOfDelays, unsigned int nrOfParameters>
-void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::analyzeInit()
+void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::analyzeInit(bool print)
 {
 	//phase 1: counting
 	unsigned int nrOfC0 = 0; 
@@ -241,29 +240,12 @@ void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::analyzeInit()
 		}
 	}
 
-	//phase 3: print discontinouties
-	/*printf("%zd + %zd discontinouities are found in the initial function:\nC0: ",nrOfC0,nrOfC1);
-	for (size_t i = 0; i < nrOfC0; i++)
-	{
-		printf("%5.3lf\t", C0disc[i]);
-	}
-	//printf("\nC1: ");
-	for (size_t i = 0; i < nrOfC1; i++)
-	{
-		printf("%5.3lf\t", C1disc[i]);
-	}*/
-
-	//phase 4: calculating double points mesh
+	//phase 3: calculating double points mesh
 	double * meshDouble = calculateMesh(C0disc, t0, nrOfC0, nrOfDelays, 1);
 	unsigned int meshDoubleLen = calculateLength(nrOfC0, nrOfDelays, 1);
 	meshDouble = filter(meshDouble, &meshDoubleLen, tStart);
-	/*printf("\n%zd double mesh points: ", meshDoubleLen);
-	for (size_t i = 0; i < meshDoubleLen; i++)
-	{
-		printf("%5.2lf\t", meshDouble[i]);
-	}*/
 
-	//phase 5: concatenating double mesh points and c1 discontinouties lists
+	//phase 4: concatenating double mesh points and c1 discontinouties lists
 	unsigned int newLen = meshDoubleLen + nrOfC1;
 	double * newList = new double[newLen];
 	for (size_t i = 0; i < nrOfC1; i++)
@@ -276,18 +258,11 @@ void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::analyzeInit()
 	}
 
 	//phase 6: calculate simple mesh
-	mesh = calculateMesh(newList, t0, newLen, nrOfDelays, 2);
-	meshLen = calculateLength(newLen, nrOfDelays, 2);
+	mesh = calculateMesh(newList, t0, newLen, nrOfDelays, 3);
+	meshLen = calculateLength(newLen, nrOfDelays, 3);
 	mesh = filter(mesh, &meshLen, tStart);
 	sort(mesh, meshLen);
-	/*printf("\n%zd simple mesh points: ", meshLen);
-	for (size_t i = 0; i < meshLen; i++)
-	{
-		printf("%5.2lf\t", mesh[i]);
-	}*/
 
-	//phase 7: setting up mesh types
-	//printf("\n\nListing mesh...\n");
 	meshType = new int[meshLen];
 	for (size_t i = 0; i < meshLen; i++)
 	{
@@ -299,8 +274,22 @@ void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::analyzeInit()
 				meshType[i] = 2;
 			}
 		}
-		
-		//printf("t=%9.7lf type = %d\n", mesh[i], meshType[i]);
+	}
+
+	if (print)
+	{
+		//print discontinouties
+		printf("%zd + %zd discontinouities are found in the initial function:\nC0: ",nrOfC0,nrOfC1);
+		for (size_t i = 0; i < nrOfC0; i++)
+		{
+			printf("%5.3lf\t", C0disc[i]);
+		}
+		printf("\nC1: ");
+		for (size_t i = 0; i < nrOfC1; i++)
+		{
+			printf("%5.3lf\t", C1disc[i]);
+		}
+		printf("\n");
 	}
 }
 
@@ -334,7 +323,6 @@ void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::RK4Step(void f(double *, d
 	//k1
 	calculateDelay(t);
 	f(xd, t, x, xDelayed, p);
-	//printf("t=%10.8lf\t%10.8lf\t",t, xd[0]);
 
 	//k2
 	tTmp = t + 0.5*dtAct;
@@ -345,7 +333,6 @@ void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::RK4Step(void f(double *, d
 		xTmp[i] = x[i] + 0.5*dtAct*xd[i];
 	}
 	f(kAct, tTmp, xTmp, xDelayed, p);
-	//printf("%10.8lf\t", kAct[0]);
 
 	//k3
 	for (size_t i = 0; i < nrOfVars; i++)
@@ -354,7 +341,6 @@ void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::RK4Step(void f(double *, d
 		xTmp[i] = x[i] + 0.5*dtAct*kAct[i];
 	}
 	f(kAct, tTmp, xTmp, xDelayed, p);
-	//printf("%10.8lf\t", kAct[0]);
 
 	//k4
 	tTmp = t + dtAct;
@@ -365,7 +351,6 @@ void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::RK4Step(void f(double *, d
 		xTmp[i] = x[i] + dtAct*kAct[i];
 	}
 	f(kAct, tTmp, xTmp, xDelayed, p);
-	//printf("%10.8lf\n", kAct[0]);
 
 	//result of step
 	for (size_t i = 0; i < nrOfVars; i++)
