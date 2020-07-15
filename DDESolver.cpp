@@ -56,20 +56,20 @@ double * DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::saveEnd(bool includePa
 		{
 			tmp[i] = p[i];
 		}
-		tmp[nrOfParameters] = tVals[memorySize - 1];
+		tmp[nrOfParameters] = tVals[memoryId - 1];
 		for (size_t i = nrOfParameters + 1; i < nrOfParameters + 1 + nrOfVars; i++)
 		{
-			tmp[i] = xVals[memorySize - 1][i - 1 - nrOfParameters];
+			tmp[i] = xVals[memoryId - 1][i - 1 - nrOfParameters];
 		}
 	}
 	else
 	{
 		tmp = new double[1 + nrOfVars];
 
-		tmp[0] = tVals[memorySize - 1];
+		tmp[0] = tVals[memoryId - 1];
 		for (size_t i = 1; i < 1 + nrOfVars; i++)
 		{
-			tmp[i] = xVals[memorySize - 1][i - 1];
+			tmp[i] = xVals[memoryId - 1][i - 1];
 		}
 	}
 
@@ -79,6 +79,14 @@ double * DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::saveEnd(bool includePa
 template<unsigned int nrOfVars, unsigned int nrOfDelays, unsigned int nrOfParameters>
 DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::~DDESolver()
 {
+	delete kAct, kSum, xTmp, x, xd, xDelayed, lastIndex, t0, varId, p;
+
+	for (size_t i = 0; i < memorySize; i++)
+	{
+		delete xVals[i], xdVals[i];
+	}
+	delete tVals, xVals, xdVals;
+	delete mesh, meshType;
 }
 
 template<unsigned int nrOfVars, unsigned int nrOfDelays, unsigned int nrOfParameters>
@@ -146,6 +154,7 @@ double * DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::filter(double * origin
 		filtered[i] = unique[i];
 	}
 	*nr = uniqueNr;
+	delete unique;
 	return filtered;
 }
 
@@ -291,6 +300,8 @@ void DDESolver<nrOfVars, nrOfDelays, nrOfParameters>::analyzeInit(bool print)
 		}
 		printf("\n");
 	}
+
+	delete C0disc, C1disc, meshDouble, newList;
 }
 
 template<unsigned int nrOfVars, unsigned int nrOfDelays, unsigned int nrOfParameters>
