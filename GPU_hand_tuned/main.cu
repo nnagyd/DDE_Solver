@@ -15,28 +15,27 @@ int main(int argc, char const *argv[])
 		printf("Using Device %d: %s\n", dev, deviceProp.name);
 		CHECK(cudaSetDevice(dev));
 
-		//system settings
-		const unsigned int nrOfVars = 3;
-		const unsigned int nrOfDelays = 1;
-
 		//constants
     const unsigned int nrOfInitialPoints = 100;
     const unsigned int nrOfSteps = 10000;
 		const unsigned int nrOfPoints = nrOfSteps + 2 * nrOfInitialPoints;
 		const unsigned int nrOfParameters = 32768;
-		const unsigned int batchSize = 512;
-		const unsigned int interpolationMemorySize = sizeof(integrationMemory<nrOfVars,nrOfDelays,nrOfPoints>)*batchSize;
-		const unsigned int parameterMemorySize = batchSize * sizeof(double);
+		const unsigned int batchSize = 4096;
 		const unsigned int nrOfBatches = (nrOfParameters + batchSize - 1)/batchSize;
 
+		//memory sizes
+		size_t tValsInitLen = nrOfInitialPoints;
+		size_t xValsInitLen = nrOfInitialPoints * batchSize;
+		size_t tValsLen = nrOfPoints;
+		size_t xValsLen = nrOfPoints * batchSize;
+
 		//fill integration settings struct
-		integrationSettings<nrOfVars,nrOfDelays,nrOfPoints> intSettings;
-		intSettings.tStart = 0.;
-		intSettings.tEnd = 10.0;
+		integrationSettings intSettings;
 		intSettings.nrOfInitialPoints = nrOfInitialPoints;
+		intSettings.nrOfParameters = batchSize;
+		intSettings.nrOfPoints = nrOfPoints;
 		intSettings.nrOfSteps = nrOfSteps;
-		intSettings.varId[0] = 1;
-		intSettings.t0[0] = 13.0/28.0;
+		intSettings.t0 = 13.0/28.0;
 
 		//kernel configuration
 		const unsigned int blocksize = 64;
@@ -47,107 +46,95 @@ int main(int argc, char const *argv[])
 		//parameter stuff, initial CPU and GPU memory
 		double * parameterListHost = linspace(47, 50, nrOfParameters);
 		double * parameterListDevice;
-		cudaMalloc((void**)&parameterListDevice,parameterMemorySize);
-
-		//allocate CPU memory
-		integrationMemory<nrOfVars,nrOfDelays,nrOfPoints> * hostMem;
-		hostMem = new integrationMemory<nrOfVars,nrOfDelays,nrOfPoints>[batchSize];
+		cudaMalloc((void**)&parameterListDevice,batchSize * sizeof(double));
 
 		//discretize initial functions
 		double * tInit = linspaceDisc(-1.0, 0.0, nrOfInitialPoints);
 		double * x0Init = discretize(x0, tInit, nrOfInitialPoints);
-		double * xd0Init = discretize(xd0, tInit, nrOfInitialPoints);
 		double * y0Init = discretize(y0, tInit, nrOfInitialPoints);
 		double * yd0Init = discretize(yd0, tInit, nrOfInitialPoints);
 		double * z0Init = discretize(z0, tInit, nrOfInitialPoints);
-		double * zd0Init = discretize(zd0, tInit, nrOfInitialPoints);
 
-		//load host memory with initial points
-		for (size_t i = 0; i < batchSize; i++) //loop through parameters
+		//copy initial conditions to new bigger arrays
+		double * x0 = new double[xValsInitLen];
+		double * y0 = new double[xValsInitLen];
+		double * yd0 = new double[xValsInitLen];
+		double * z0 = new double[xValsInitLen];
+		for (size_t i = 0; i < nrOfInitialPoints; i++)
 		{
-			for (size_t j = 0; j < nrOfPoints; j++) //loop through initial points
+			for (size_t j = 0; j < batchSize; j++)
 			{
-				if(j < nrOfInitialPoints)
-				{
-					hostMem[i].tVals[j] 								= tInit[j];
-					hostMem[i].xVals[j] 								= x0Init[j];
-					hostMem[i].xVals[j + nrOfPoints] 		= y0Init[j];
-					hostMem[i].xVals[j + 2*nrOfPoints] 	= z0Init[j];
-					hostMem[i].xdVals[j] 								= xd0Init[j];
-					hostMem[i].xdVals[j + nrOfPoints]		= yd0Init[j];
-					hostMem[i].xdVals[j + 2*nrOfPoints]	= zd0Init[j];
-					//printf("i = %zd j = %zd t = %lf x = %lf\n",i,j,tInit[j],y0Init[j]);
-				}
-				else
-				{
-					hostMem[i].tVals[j] 								= 0;
-					hostMem[i].xVals[j] 								= 0;
-					hostMem[i].xVals[j + nrOfPoints] 		= 0;
-					hostMem[i].xVals[j + 2*nrOfPoints] 	= 0;
-					hostMem[i].xdVals[j] 								= 0;
-					hostMem[i].xdVals[j + nrOfPoints]		= 0;
-					hostMem[i].xdVals[j + 2*nrOfPoints]	= 0;
-				}
+				unsigned int idx = i*batchSize + j;
+				x0[idx] = x0Init[i];
+				y0[idx] = y0Init[i];
+				yd0[idx] = yd0Init[i];
+				z0[idx] = z0Init[i];
 			}
 		}
+
 		//allocate GPU memory
-		integrationMemory<nrOfVars,nrOfDelays,nrOfPoints> * devMem;
-		cudaMalloc((void**)&devMem, interpolationMemorySize);
-		CHECK(cudaMemcpy(devMem,hostMem,interpolationMemorySize,cudaMemcpyHostToDevice));
+		cudaMalloc((void**)&intSettings.tVals, tValsLen*sizeof(double));
+		cudaMalloc((void**)&intSettings.xVals, xValsLen*sizeof(double));
+		cudaMalloc((void**)&intSettings.yVals, xValsLen*sizeof(double));
+		cudaMalloc((void**)&intSettings.ydVals, xValsLen*sizeof(double));
+		cudaMalloc((void**)&intSettings.zVals, xValsLen*sizeof(double));
+
+		//copy the initial values to gpu memory
+		cudaMemcpy(intSettings.tVals, tInit,tValsInitLen*sizeof(double),cudaMemcpyHostToDevice);
+		cudaMemcpy(intSettings.xVals, x0,xValsInitLen*sizeof(double),cudaMemcpyHostToDevice);
+		cudaMemcpy(intSettings.yVals, y0,xValsInitLen*sizeof(double),cudaMemcpyHostToDevice);
+		cudaMemcpy(intSettings.ydVals, yd0,xValsInitLen*sizeof(double),cudaMemcpyHostToDevice);
+		cudaMemcpy(intSettings.zVals, z0,xValsInitLen*sizeof(double),cudaMemcpyHostToDevice);
 
 		//information about the run
-		printf("Memory size: %d MB \n",interpolationMemorySize/1024/1024);
-		printf("Launching kernel with <<<%d,%d>>> \n",gridsize,blocksize);
+		printf("Memory size: %zd MB \n",(xValsLen*4+tValsLen)*sizeof(double)/1024/1024);
+		printf("Launching kernel with <<<%d,%d>>> in %d batches\n",gridsize,blocksize,nrOfBatches);
 
-		//analyze initial conditions
-		analyzeInit<nrOfVars,nrOfDelays,nrOfPoints>(true,tInit,x0Init,xd0Init,&intSettings);
+		printf("Mesh: \t");
+		for (size_t i = 0; i < 3; i++)
+		{
+			intSettings.mesh[i] = (i+1)*intSettings.t0;
+			printf("%8.5lf\t",intSettings.mesh[i]);
+		}
+		printf("\n");
 
-		//integration setting copy to device
-		integrationSettings<nrOfVars,nrOfDelays,nrOfPoints> deviceIntSettings = intSettings;
-		unsigned int meshSizeDouble = intSettings.meshLen * sizeof(double);
-		unsigned int meshSizeInt = intSettings.meshLen * sizeof(int);
-		cudaMalloc((void**)&deviceIntSettings.mesh,meshSizeDouble);
-		cudaMalloc((void**)&deviceIntSettings.meshType,meshSizeInt);
-		cudaMemcpy(deviceIntSettings.mesh,intSettings.mesh,meshSizeDouble,cudaMemcpyHostToDevice);
-		cudaMemcpy(deviceIntSettings.meshType,intSettings.meshType,meshSizeInt,cudaMemcpyHostToDevice);
-
-		//save end values
-		std::ofstream ofs("GPU_endvalues.txt");
-		int id = nrOfInitialPoints + 1 + nrOfSteps;
+		//save to file
+		std::ofstream ofs("GPU_endvalues_3.txt");
+		int id = nrOfInitialPoints + 2 + nrOfSteps;
 
 		//execution in batches
 		double tStart = seconds();
+
+		//execute in batches
 		for (size_t k = 0; k < nrOfBatches; k++)
 		{
-			//copy new batch to memory
-			CHECK(cudaMemcpy((void**)parameterListDevice,parameterListHost + k*batchSize,parameterMemorySize,cudaMemcpyHostToDevice));
+			CHECK(cudaMemcpy(parameterListDevice,parameterListHost + k*batchSize,batchSize * sizeof(double),cudaMemcpyHostToDevice));
 
 			//launch kernel
-			solver<nrOfVars,nrOfDelays,nrOfPoints><<<grid,block>>>(deviceIntSettings, parameterListDevice, batchSize, devMem);
+			solver<<<grid,block>>>(intSettings, parameterListDevice);
 			CHECK(cudaDeviceSynchronize());
 
 			//copy back to global memory
-			cudaMemcpy(hostMem,devMem,interpolationMemorySize,cudaMemcpyDeviceToHost);
+			double * xRef = new double[xValsLen];
+			cudaMemcpy(xRef,intSettings.xVals,xValsLen*sizeof(double),cudaMemcpyDeviceToHost);
 
 			for (size_t i = 0; i < batchSize; i++)
 			{
-				double t = hostMem[i].tVals[id];
-				double x = hostMem[i].xVals[id];
-				double y = hostMem[i].xVals[id+nrOfPoints];
-				double z = hostMem[i].xVals[id+2*nrOfPoints];
-				ofs << parameterListHost[i+k*batchSize] << "\t" << t << "\t"<< x << "\t"<< y << "\t"<< z << "\n";
+					double x = xRef[id*batchSize + i];
+					ofs << parameterListHost[k*batchSize + i] <<"\t" << x << "\n";
 			}
+
+			delete xRef;
 		}
 		double tEnd = seconds();
+		printf("Execution finished for p = %d parameters in t = %lf s \n", nrOfParameters, (tEnd - tStart) );
 		ofs.flush();
 		ofs.close();
-		printf("Execution finished for %d parameters in t = %lf s \n", nrOfParameters, (tEnd - tStart) );
 
 		//free gpu memomory
-		cudaFree(devMem);
 		cudaFree(parameterListDevice);
 
 		//delete cpu memory
-		delete hostMem,parameterListHost;
-		delete tInit, x0Init, xd0Init, y0Init, yd0Init, z0Init, zd0Init;
+		delete parameterListHost;
+		delete tInit, x0Init, y0Init, yd0Init, z0Init;
 }

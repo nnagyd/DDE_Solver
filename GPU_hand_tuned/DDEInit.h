@@ -1,10 +1,9 @@
-#ifndef DDE_INIT_
-#define DDE_INIT_
+#pragma once
 
 double * discretize(double f(double t, int dir), double * tVals, unsigned int nrOfPoints)
 {
 	double * lst = new double[nrOfPoints];
-
+	
 	for (size_t i = 0; i < nrOfPoints; i++)
 	{
 		int dir = -1;
@@ -35,7 +34,7 @@ double * linspaceDisc(double t0, double t1, unsigned int nr, double * tDisc = NU
 {
 	double * lst = new double[nr + 2 * nrOfDisc];
 	int * discMask = new int[nrOfDisc];
-	//set all element to 0, set to 1 if the i. discontinouity is included
+	//set all element to 0, set to 1 if the i. discontinouity is included 
 	for (size_t i = 0; i < nrOfDisc; i++)
 	{
 		discMask[i] = 0;
@@ -71,5 +70,3 @@ double * linspaceDisc(double t0, double t1, unsigned int nr, double * tDisc = NU
 	}
 	return lst;
 }
-
-#endif
