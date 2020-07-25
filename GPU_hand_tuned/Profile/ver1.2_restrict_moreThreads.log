@@ -1,0 +1,126 @@
+--- SUMMARY ---
+
+==31475== NVPROF is profiling process 31475, command: ./solver
+==31475== Profiling application: ./solver
+==31475== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:   92.92%  285.06ms         1  285.06ms  285.06ms  285.06ms  [CUDA memcpy DtoH]
+                    4.56%  13.991ms         1  13.991ms  13.991ms  13.991ms  solver(integrationSettings, double const *)
+                    2.52%  7.7188ms         4  1.9297ms  1.3440us  3.8395ms  [CUDA memcpy HtoD]
+No API activities were profiled.
+
+
+--- SPECIFIC METRICS AND EVENTS ---
+
+==31498== NVPROF is profiling process 31498, command: ./solver
+==31498== Some kernel(s) will be replayed on device 0 in order to collect all events/metrics.
+==31498== Profiling application: ./solver
+==31498== Profiling result:
+==31498== Event result:
+Invocations                                Event Name         Min         Max         Avg       Total
+Device "GeForce GTX TITAN Black (0)"
+    Kernel: solver(integrationSettings, double const *)
+          1                         elapsed_cycles_sm   184558809   184558809   184558809   184558809
+          1                             active_cycles   180340903   180340903   180340903   180340903
+
+==31498== Metric result:
+Invocations                               Metric Name                            Metric Description         Min         Max         Avg
+Device "GeForce GTX TITAN Black (0)"
+    Kernel: solver(integrationSettings, double const *)
+          1                             sm_efficiency                       Multiprocessor Activity      97.81%      97.81%      97.81%
+          1                        achieved_occupancy                            Achieved Occupancy    0.430620    0.430620    0.430620
+          1                  eligible_warps_per_cycle               Eligible Warps Per Active Cycle   11.456729   11.456729   11.456729
+          1                      tex_cache_throughput                      Texture Cache Throughput  38.986MB/s  38.986MB/s  38.986MB/s
+          1                      dram_read_throughput                 Device Memory Read Throughput  49.941GB/s  49.941GB/s  49.941GB/s
+          1                     dram_write_throughput                Device Memory Write Throughput  77.143GB/s  77.143GB/s  77.143GB/s
+          1                            gst_throughput                       Global Store Throughput  80.946GB/s  80.946GB/s  80.946GB/s
+          1                            gld_throughput                        Global Load Throughput  169.70GB/s  169.70GB/s  169.70GB/s
+          1                     local_load_throughput                  Local Memory Load Throughput  0.00000B/s  0.00000B/s  0.00000B/s
+          1                    local_store_throughput                 Local Memory Store Throughput  0.00000B/s  0.00000B/s  0.00000B/s
+          1              gld_transactions_per_request          Global Load Transactions Per Request    1.522938    1.522938    1.522938
+          1              gst_transactions_per_request         Global Store Transactions Per Request    1.666556    1.666556    1.666556
+          1                    shared_load_throughput                 Shared Memory Load Throughput  0.00000B/s  0.00000B/s  0.00000B/s
+          1                  l1_cache_global_hit_rate                            L1 Global Hit Rate       0.00%       0.00%       0.00%
+          1                   l1_cache_local_hit_rate                             L1 Local Hit Rate       0.00%       0.00%       0.00%
+          1                   shared_store_throughput                Shared Memory Store Throughput  0.00000B/s  0.00000B/s  0.00000B/s
+          1                        l2_read_throughput                         L2 Throughput (Reads)  169.74GB/s  169.74GB/s  169.74GB/s
+          1                       l2_write_throughput                        L2 Throughput (Writes)  80.946GB/s  80.946GB/s  80.946GB/s
+          1                     l2_l1_read_throughput                      L2 Throughput (L1 Reads)  169.70GB/s  169.70GB/s  169.70GB/s
+          1                    l2_l1_write_throughput                     L2 Throughput (L1 Writes)  80.946GB/s  80.946GB/s  80.946GB/s
+          1                l2_texture_read_throughput                 L2 Throughput (Texture Reads)  38.986MB/s  38.986MB/s  38.986MB/s
+          1                            gld_efficiency                 Global Memory Load Efficiency      92.32%      92.32%      92.32%
+          1                            gst_efficiency                Global Memory Store Efficiency      95.59%      95.59%      95.59%
+          1                         shared_efficiency                      Shared Memory Efficiency       0.00%       0.00%       0.00%
+          1                             flop_count_dp   Floating Point Operations(Double Precision)  1.1078e+10  1.1078e+10  1.1078e+10
+          1                              inst_integer                          Integer Instructions  2137915392  2137915392  2137915392
+          1                        inst_compute_ld_st                       Load/Store Instructions   698286080   698286080   698286080
+          1                        flop_dp_efficiency                  FLOP Efficiency(Peak Double)      46.89%      46.89%      46.89%
+          1                     l1_shared_utilization                  L1/Shared Memory Utilization     Low (1)     Low (1)     Low (1)
+          1                            l2_utilization                          L2 Cache Utilization     Low (2)     Low (2)     Low (2)
+          1                           tex_utilization                     Texture Cache Utilization     Low (1)     Low (1)     Low (1)
+          1                          dram_utilization                     Device Memory Utilization     Mid (5)     Mid (5)     Mid (5)
+          1                        sysmem_utilization                     System Memory Utilization     Low (1)     Low (1)     Low (1)
+          1                       ldst_fu_utilization          Load/Store Function Unit Utilization     Low (3)     Low (3)     Low (3)
+          1                        alu_fu_utilization          Arithmetic Function Unit Utilization    High (8)    High (8)    High (8)
+          1                        tex_fu_utilization             Texture Function Unit Utilization     Low (1)     Low (1)     Low (1)
+          1                           stall_pipe_busy               Issue Stall Reasons (Pipe Busy)       4.19%       4.19%       4.19%
+          1                     stall_exec_dependency    Issue Stall Reasons (Execution Dependency)      32.33%      32.33%      32.33%
+          1                   stall_memory_dependency            Issue Stall Reasons (Data Request)      17.46%      17.46%      17.46%
+          1                          stall_inst_fetch      Issue Stall Reasons (Instructions Fetch)       6.66%       6.66%       6.66%
+          1                             stall_texture                 Issue Stall Reasons (Texture)       0.00%       0.00%       0.00%
+          1                        stall_not_selected            Issue Stall Reasons (Not Selected)      31.38%      31.38%      31.38%
+          1          stall_constant_memory_dependency      Issue Stall Reasons (Immediate constant)       0.00%       0.00%       0.00%
+          1                     stall_memory_throttle         Issue Stall Reasons (Memory Throttle)       5.79%       5.79%       5.79%
+          1                                stall_sync         Issue Stall Reasons (Synchronization)       0.00%       0.00%       0.00%
+          1                               stall_other                   Issue Stall Reasons (Other)       2.19%       2.19%       2.19%
+
+
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
+======== Error: Application returned non-zero code -1
