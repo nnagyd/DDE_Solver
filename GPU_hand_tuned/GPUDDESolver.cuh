@@ -26,43 +26,37 @@ struct threadVariables
 	double kAct[3];
 	double kSum[3];
 	double p, xDelay;
-	double t, tTmp, dt;
+	double t, tTmp, dt, dtp2, dtp6, dt1p;
 
 	//memory loads
 	double tb,xb,xn,xdb,xdn,deltat;
 };
 
-
-__forceinline__ __device__ unsigned int findIndex(double t, threadVariables * __restrict__ vars, integrationSettings intSettings)
-{
-	for (unsigned int i = (*vars).lastIndex; i < intSettings.nrOfPoints; i++)
-	{
-		if (t < intSettings.tVals[i])
-		{
-			if (i >= 1) (*vars).lastIndex = i;
-			else (*vars).lastIndex = 0;
-			return i;
-		}
-	}
-	return (unsigned int)0;
-}
-
 __forceinline__ __device__ void loadValues(double t, threadVariables  * __restrict__ vars, integrationSettings intSettings)
 {
-	unsigned int step = findIndex(t, vars, intSettings) - 1;
+	unsigned int i = (*vars).lastIndex;
+	unsigned int step;
+	if(t < intSettings.tVals[i]) //on correct step
+	{
+		step = i-1;
+	}
+	else //next step is needed
+	{
+		step = i;
+		(*vars).lastIndex++;
+	}
 	(*vars).tb = intSettings.tVals[step];
 	(*vars).xb = intSettings.yVals[step * intSettings.nrOfParameters + (*vars).threadId];
 	(*vars).xn = intSettings.yVals[(step + 1) * intSettings.nrOfParameters + (*vars).threadId];
 	(*vars).xdb = intSettings.ydVals[step * intSettings.nrOfParameters + (*vars).threadId];
 	(*vars).xdn = intSettings.ydVals[(step + 1) * intSettings.nrOfParameters + (*vars).threadId];
-	(*vars).deltat = intSettings.tVals[step+1] - (*vars).tb;
 }
 
 
 __forceinline__ __device__ double denseOutput(double t, threadVariables  * __restrict__ vars, integrationSettings intSettings)
 {
-	double theta = (t - (*vars).tb) / (*vars).deltat;
-	double res = (1 - theta)*(*vars).xb + theta * (*vars).xn + theta * (theta - 1)*((1 - 2 * theta)*((*vars).xn - (*vars).xb) + (theta - 1)*(*vars).deltat*(*vars).xdb + theta * (*vars).deltat*(*vars).xdn);
+	double theta = (t - (*vars).tb) * (*vars).dt1p;
+	double res = (1 - theta)*(*vars).xb + theta * (*vars).xn + theta * (theta - 1)*((1 - 2 * theta)*((*vars).xn - (*vars).xb) + (theta - 1)*(*vars).dt*(*vars).xdb + theta * (*vars).dt*(*vars).xdn);
 	return res;
 }
 
@@ -81,6 +75,9 @@ __global__ void solver(integrationSettings intSettings, const double * __restric
 
 	//initialize thread variables
 	vars.dt = intSettings.dt;
+	vars.dtp2 = intSettings.dt / 2.0;
+	vars.dtp6 = intSettings.dt / 6.0;
+	vars.dt1p = 1.0 / intSettings.dt;
 	vars.t = 0;
 	vars.lastIndex = 0;
 
@@ -102,7 +99,7 @@ __global__ void solver(integrationSettings intSettings, const double * __restric
 	for(size_t stepNumber = 0; stepNumber < intSettings.nrOfSteps; stepNumber++)
 	{
 		//------------------------ LOAD DENSE denseOutput VALUES -----------------------------
-		vars.tTmp = vars.t + 0.5*vars.dt;
+		vars.tTmp = vars.t + vars.dtp2;
 		loadValues(vars.tTmp-intSettings.t0,&vars,intSettings);
 
 		//----------------------------- START OF RK4 STEP ------------------------------------
@@ -119,7 +116,7 @@ __global__ void solver(integrationSettings intSettings, const double * __restric
 		for (size_t i = 0; i < 3; i++)
 		{
 			vars.kSum[i] = vars.kAct[i];
-			vars.xTmp[i] = vars.x[i] + 0.5*vars.dt*vars.kAct[i];
+			vars.xTmp[i] = vars.x[i] + vars.dtp2*vars.kAct[i];
 		}
 		f(vars.kAct, vars.tTmp, vars.xTmp, vars.xDelay, vars.p);
 
@@ -128,7 +125,7 @@ __global__ void solver(integrationSettings intSettings, const double * __restric
 		for (size_t i = 0; i < 3; i++)
 		{
 			vars.kSum[i] += 2*vars.kAct[i];
-			vars.xTmp[i] = vars.x[i] + 0.5*vars.dt*vars.kAct[i];
+			vars.xTmp[i] = vars.x[i] + vars.dtp2*vars.kAct[i];
 		}
 		f(vars.kAct, vars.tTmp, vars.xTmp, vars.xDelay, vars.p);
 
@@ -148,7 +145,7 @@ __global__ void solver(integrationSettings intSettings, const double * __restric
 		for (size_t i = 0; i < 3; i++)
 		{
 			vars.kSum[i] += vars.kAct[i];
-			vars.x[i] += 1. / 6. * vars.dt * vars.kSum[i];
+			vars.x[i] += vars.dtp6 * vars.kSum[i];
 		}
 		vars.t += vars.dt;
 		//-----------------------------  END  OF RK4 STEP ------------------------------------

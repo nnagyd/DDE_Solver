@@ -17,4 +17,6 @@
 
 # Verzió 1.4
 * A verzió 1.2 kiegészítése tekintettel a Pointer Aliasing-ra
-* GFLOPS: 47.0%
+* Osztás kiszedése a dense outputból
+* findindex függvény helyett csak index léptetés
+* GFLOPS: 51.4%

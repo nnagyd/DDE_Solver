@@ -1,0 +1,88 @@
+--- SUMMARY ---
+
+==15019== NVPROF is profiling process 15019, command: ./solver
+==15019== Profiling application: ./solver
+==15019== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:   93.70%  287.95ms         1  287.95ms  287.95ms  287.95ms  [CUDA memcpy DtoH]
+                    3.78%  11.628ms         1  11.628ms  11.628ms  11.628ms  solver(integrationSettings, double const *)
+                    2.51%  7.7220ms         4  1.9305ms  1.2800us  3.8416ms  [CUDA memcpy HtoD]
+No API activities were profiled.
+
+
+--- GENERATE FILE FOR VISUAL PROFILER ---
+
+==15042== NVPROF is profiling process 15042, command: ./solver
+==15042== Some kernel(s) will be replayed on device 0 in order to collect all events/metrics.
+==15042== Warning: PC Sampling is not supported on the underlying platform.
+==15042== Generated result file: /home/dnagy/DDE/GPU_MASTER/result_new.nvprof
+
+
+--- SPECIFIC METRICS AND EVENTS ---
+
+==15064== NVPROF is profiling process 15064, command: ./solver
+==15064== Some kernel(s) will be replayed on device 0 in order to collect all events/metrics.
+==15064== Profiling application: ./solver
+==15064== Profiling result:
+==15064== Event result:
+Invocations                                Event Name         Min         Max         Avg       Total
+Device "GeForce GTX TITAN Black (0)"
+    Kernel: solver(integrationSettings, double const *)
+          1                         elapsed_cycles_sm   152947341   152947341   152947341   152947341
+          1                             active_cycles   150790342   150790342   150790342   150790342
+
+==15064== Metric result:
+Invocations                               Metric Name                                Metric Description         Min         Max         Avg
+Device "GeForce GTX TITAN Black (0)"
+    Kernel: solver(integrationSettings, double const *)
+          1                             sm_efficiency                           Multiprocessor Activity      98.36%      98.36%      98.36%
+          1                        achieved_occupancy                                Achieved Occupancy    0.426023    0.426023    0.426023
+          1                  eligible_warps_per_cycle                   Eligible Warps Per Active Cycle   11.964222   11.964222   11.964222
+          1                      tex_cache_throughput                          Texture Cache Throughput  46.771MB/s  46.771MB/s  46.771MB/s
+          1                      dram_read_throughput                     Device Memory Read Throughput  60.264GB/s  60.264GB/s  60.264GB/s
+          1                     dram_write_throughput                    Device Memory Write Throughput  92.487GB/s  92.487GB/s  92.487GB/s
+          1                            gst_throughput                           Global Store Throughput  97.110GB/s  97.110GB/s  97.110GB/s
+          1                            gld_throughput                            Global Load Throughput  197.87GB/s  197.87GB/s  197.87GB/s
+          1                     local_load_throughput                      Local Memory Load Throughput  0.00000B/s  0.00000B/s  0.00000B/s
+          1                    local_store_throughput                     Local Memory Store Throughput  0.00000B/s  0.00000B/s  0.00000B/s
+          1              gld_transactions_per_request              Global Load Transactions Per Request    1.601564    1.601564    1.601564
+          1              gst_transactions_per_request             Global Store Transactions Per Request    1.666556    1.666556    1.666556
+          1                    shared_load_throughput                     Shared Memory Load Throughput  0.00000B/s  0.00000B/s  0.00000B/s
+          1                  l1_cache_global_hit_rate                                L1 Global Hit Rate       0.00%       0.00%       0.00%
+          1                   l1_cache_local_hit_rate                                 L1 Local Hit Rate       0.00%       0.00%       0.00%
+          1                   shared_store_throughput                    Shared Memory Store Throughput  0.00000B/s  0.00000B/s  0.00000B/s
+          1                        l2_read_throughput                             L2 Throughput (Reads)  197.92GB/s  197.92GB/s  197.92GB/s
+          1                       l2_write_throughput                            L2 Throughput (Writes)  97.110GB/s  97.110GB/s  97.110GB/s
+          1                     l2_l1_read_throughput                          L2 Throughput (L1 Reads)  197.87GB/s  197.87GB/s  197.87GB/s
+          1                    l2_l1_write_throughput                         L2 Throughput (L1 Writes)  97.110GB/s  97.110GB/s  97.110GB/s
+          1                l2_texture_read_throughput                     L2 Throughput (Texture Reads)  46.771MB/s  46.771MB/s  46.771MB/s
+          1                            gld_efficiency                     Global Memory Load Efficiency      94.27%      94.27%      94.27%
+          1                            gst_efficiency                    Global Memory Store Efficiency      95.59%      95.59%      95.59%
+          1                         shared_efficiency                          Shared Memory Efficiency       0.00%       0.00%       0.00%
+          1                             flop_count_dp       Floating Point Operations(Double Precision)  9045409792  9045409792  9045409792
+          1                         flop_count_dp_add   Floating Point Operations(Double Precision Add)  1769472000  1769472000  1769472000
+          1                         flop_count_dp_fma   Floating Point Operations(Double Precision FMA)  2818703360  2818703360  2818703360
+          1                         flop_count_dp_mul   Floating Point Operations(Double Precision Mul)  1638531072  1638531072  1638531072
+          1                              inst_integer                              Integer Instructions  2006384640  2006384640  2006384640
+          1                        inst_compute_ld_st                           Load/Store Instructions   632750080   632750080   632750080
+          1                        flop_dp_efficiency                      FLOP Efficiency(Peak Double)      46.20%      46.20%      46.20%
+          1                     l1_shared_utilization                      L1/Shared Memory Utilization     Low (1)     Low (1)     Low (1)
+          1                            l2_utilization                              L2 Cache Utilization     Low (3)     Low (3)     Low (3)
+          1                           tex_utilization                         Texture Cache Utilization     Low (1)     Low (1)     Low (1)
+          1                          dram_utilization                         Device Memory Utilization     Mid (5)     Mid (5)     Mid (5)
+          1                        sysmem_utilization                         System Memory Utilization     Low (1)     Low (1)     Low (1)
+          1                       ldst_fu_utilization              Load/Store Function Unit Utilization     Low (3)     Low (3)     Low (3)
+          1                        alu_fu_utilization              Arithmetic Function Unit Utilization    High (8)    High (8)    High (8)
+          1                        tex_fu_utilization                 Texture Function Unit Utilization     Low (1)     Low (1)     Low (1)
+          1                           stall_pipe_busy                   Issue Stall Reasons (Pipe Busy)       4.96%       4.96%       4.96%
+          1                     stall_exec_dependency        Issue Stall Reasons (Execution Dependency)      30.02%      30.02%      30.02%
+          1                   stall_memory_dependency                Issue Stall Reasons (Data Request)      17.43%      17.43%      17.43%
+          1                          stall_inst_fetch          Issue Stall Reasons (Instructions Fetch)       4.32%       4.32%       4.32%
+          1                             stall_texture                     Issue Stall Reasons (Texture)       0.00%       0.00%       0.00%
+          1                        stall_not_selected                Issue Stall Reasons (Not Selected)      33.54%      33.54%      33.54%
+          1          stall_constant_memory_dependency          Issue Stall Reasons (Immediate constant)       0.01%       0.01%       0.01%
+          1                     stall_memory_throttle             Issue Stall Reasons (Memory Throttle)       7.44%       7.44%       7.44%
+          1                                stall_sync             Issue Stall Reasons (Synchronization)       0.00%       0.00%       0.00%
+          1                               stall_other                       Issue Stall Reasons (Other)       2.27%       2.27%       2.27%
+
+

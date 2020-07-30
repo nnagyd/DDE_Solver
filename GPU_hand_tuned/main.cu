@@ -21,10 +21,10 @@ int main(int argc, char const *argv[])
 
 		//constants
     const unsigned int nrOfInitialPoints = 50;
-    const unsigned int nrOfSteps = 10000;
+    const unsigned int nrOfSteps = 1000;
 		const unsigned int nrOfPoints = nrOfSteps + 2 * nrOfInitialPoints;
-		const unsigned int nrOfParameters = 32768;
-		const unsigned int batchSize = 8192;
+		const unsigned int nrOfParameters = 65536;
+		const unsigned int batchSize = nrOfParameters;
 		const unsigned int nrOfBatches = (nrOfParameters + batchSize - 1)/batchSize;
 
 		//memory sizes

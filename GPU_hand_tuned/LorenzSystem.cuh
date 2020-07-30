@@ -11,7 +11,7 @@ __forceinline__ __device__ void f(double * __restrict__ xd, const double t, cons
 {
 	xd[0] = 10.0*(xDelay - x[1]);
 	xd[1] = p * x[0] - x[1] - x[2] * x[0];
-	xd[2] = x[0] * x[1] - 8.0/3.0 * x[2];
+	xd[2] = x[0] * x[1] - (8.0/3.0) * x[2];
 }
 
 //------------------------------ Initial functions --------------------------------
