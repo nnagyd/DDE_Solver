@@ -14,3 +14,6 @@
 # Verzió 1.3
 * Unroll = 2 Alkalmazása
 * GFLOPS: 35.8%
+
+# Verzió 1.4
+* A verzió 1.2 kiegészítése tekintettel a Pointer Aliasing-ra
